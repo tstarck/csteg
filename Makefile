@@ -2,5 +2,16 @@
 
 CC=gcc -ansi -pedantic -Wall
 
-main:
-	$(CC) -o hello hello.c
+main: ensteg.o
+	$(CC) -o test ensteg.o
+
+ensteg.o: ensteg.c
+	$(CC) -c ensteg.c
+
+clean:
+	@echo -n "$$ "
+	rm -fv *.o
+
+test: main
+	@echo
+	./test -f hippula.ppm
