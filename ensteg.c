@@ -15,67 +15,93 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <getopt.h>
+#include <stdbool.h>
 #include <fcntl.h>
+#include <getopt.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <err.h>
 
-#define TRUE 1
-#define FALSE 0
-
 const char usage[] = "USAGE: ./test -f <file>";
+const char zerosize[] = "error: Zero file size";
+const char headerfail[] = "error: Invalid file header (PPM format required)";
+
+void debug(const char *msg) {
+	printf("debug :: %s\n", msg);
+}
+
+int memval(char *addr, unsigned int i, char *cmp, int n) {
+	if (memcmp(addr+i, cmp, n) != 0) return -1;
+	return i+n;
+}
+
+int memchar(char *addr, char *cmp) {
+	if (memcmp(addr, cmp, 1) == 0) return true;
+	return false;
+}
+
+int something(char *addr) {
+	unsigned int i = 0;
+
+	if ((i = memval(addr, i, "P6", 2)) == -1)
+		errx(EXIT_FAILURE, headerfail);
+
+	i = skip_ads(addr, i);
+}
+
+int skip_ads(char *addr, unsigned int i) {
+	unsigned int val = i;
+
+	if ((i = memval(addr, i, "0x0a#", 2)) != -1) {
+		debug("kommentti löytys");
+		while (!memchar(addr+i, '0x0a')) i++;
+		val = skip_ads(addr, i);
+	}
+
+	return val;
+}
 
 int main(int argc, char* argv[]) {
 	int c, fd;
 	char *addr;
 	struct stat sb;
-	off_t offset, page_aligned;
-	size_t length;
-	ssize_t done;
+	size_t flen;
 
 	if ((c = getopt(argc, argv, "f:")) != 'f')
-		errx(1, "%s", usage);
+		errx(EXIT_FAILURE, "%s", usage);
 
 	if (argv[2] == '\0')
-		errx(1, "%s", usage);
+		errx(EXIT_FAILURE, "%s", usage);
 
-	if ((fd = open(argv[2], O_RDONLY)) == -1)
-		err(1, "%s", argv[2]);
+	if ((fd = open(argv[2], O_RDWR)) == -1)
+		err(EXIT_FAILURE, "%s", argv[2]);
 
 	if (fstat(fd, &sb) == -1)
-		err(1, "%s", "fstat()");
+		err(EXIT_FAILURE, "fstat()");
 
-	offset = 15;
-	page_aligned = offset & ~(sysconf(_SC_PAGESIZE) -1);
+	if ((flen = sb.st_size) == 0)
+		errx(EXIT_FAILURE, zerosize);
 
-	printf("offset :: %i\n", (int)offset);
-	printf("aligned : %i\n", (int)page_aligned);
-	printf("pagesize: %li\n", sysconf(_SC_PAGESIZE));
+	printf("debug :: flength  :: %i\n", (int)flen);
+	printf("debug :: pagesize :: %li\n", sysconf(_SC_PAGESIZE));
 
-	length = sb.st_size - offset;
-
-	printf("length :: %i\n", (int)length);
-
-	if (offset >= sb.st_size) {
-		errx(1, "%s", "Offset beyond file border");
-	}
-
-	addr = mmap(NULL, length+offset-page_aligned, PROT_READ, MAP_SHARED, fd, page_aligned);
+	addr = mmap(NULL, flen, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
 	if (addr == MAP_FAILED)
-		err(1, "%s", "mmap");
+		err(EXIT_FAILURE, "%s", "mmap()");
 
-	done = write(STDOUT_FILENO, addr+offset-page_aligned, length);
+	if (something(addr))
+		debug("something :: yes");
+	else
+		debug("something :: nou");
 
-	if (done == -1)
-		warn("write()");
+	if (munmap(addr, flen) == -1)
+		err(EXIT_FAILURE, "munmap()");
 
-	if (done != length)
-		warn("Partial write");
-
-	printf("\\o/\n");
+	if (close(fd) == -1)
+		err(EXIT_FAILURE, "close()");
 
 	return EXIT_SUCCESS;
 }
