@@ -14,4 +14,4 @@ clean:
 
 test: main
 	@echo
-	./test -f hippula.ppm
+	./test -f pic.ppm
