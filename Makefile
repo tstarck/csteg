@@ -1,6 +1,6 @@
 # Makefile
 
-CC=gcc -ansi -pedantic -Wall
+CC=gcc -ansi -pedantic -Wall -DDEBUG
 
 main: ensteg.o
 	$(CC) -o test ensteg.o
