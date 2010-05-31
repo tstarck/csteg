@@ -24,7 +24,7 @@
 #include <sys/mman.h>
 #include <err.h>
 
-#define ever ;;
+#define ever (;;)
 
 const char usage[] = "USAGE: ./test -f <file>";
 const char zerosize[] = "error: Zero file size";
@@ -110,7 +110,7 @@ unsigned int read_dec(char *addr, unsigned int i, int *ptr) {
 	if (sscanf(addr+i, "%i", ptr) != 1)
 		errx(EXIT_FAILURE, somefail);
 
-	for (ever) {
+	for ever {
 		chr = (char)*(addr+i);
 		if (chr < '0' || '9' < chr)
 			break;
@@ -120,9 +120,26 @@ unsigned int read_dec(char *addr, unsigned int i, int *ptr) {
 	return i;
 }
 
+int just_do_it(char *addr, int resolution, int fit) {
+	int i = 0,
+		bit = 0,
+		chr = 0;
+
+	for ever {
+		if (bit == 0) {
+			if ((chr = getchar()) == EOF) {
+				printf("debug :: getchar(EOF)\n");
+				break;
+			}
+			bit = 7;
+		}
+	}
+}
+
 int funktio(char *addr) {
 	unsigned int i;
 	int width, height, scale, fit;
+	int tmp;
 
 	i = 0;
 
@@ -172,9 +189,12 @@ int funktio(char *addr) {
 	else
 		errx(EXIT_FAILURE, "Newline required");
 
-	/* Spec step 9 */
-	/* FIXME */
+	printf("header done @(%i)\n", i);
 
+	/* Spec step 9 */
+	tmp = just_do_it(addr+i, width*height, fit);
+
+	printf("just_do_it(%i)\n", tmp);
 	printf("funktio(%i)\n", i);
 
 	return i;
