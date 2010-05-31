@@ -24,10 +24,13 @@
 #include <sys/mman.h>
 #include <err.h>
 
+#define ever ;;
+
 const char usage[] = "USAGE: ./test -f <file>";
 const char zerosize[] = "error: Zero file size";
 const char headerfail[] = "error: Invalid file header (PPM format required)";
 const char syntaxfail[] = "error: PPM syntax fail :-(";
+const char somefail[] = "error: Could not read ascii decimal";
 
 void debug(const char *msg) {
 #ifdef DEBUG
@@ -50,9 +53,9 @@ unsigned int no_comments(char *addr, unsigned int i) {
 
 	printf("skip_ads(): i: %u\n", i);
 
-	if ((i = memval(addr, i, "\x0a#", 2)) != -1) {
+	if ((i = memval(addr, i, "\n#", 2)) != -1) {
 		debug("skip_ads: eliminating comment");
-		while (!memchar(addr+i, "\x0a")) i++;
+		while (!memchar(addr+i, "\n")) i++;
 		val = no_comments(addr, i);
 	}
 	else {
@@ -101,39 +104,52 @@ unsigned int req_skip_ws(char *addr, unsigned int i) {
 	return ret;
 }
 
+unsigned int read_dec(char *addr, unsigned int i, int *ptr) {
+	char chr;
+
+	if (sscanf(addr+i, "%i", ptr) != 1)
+		errx(EXIT_FAILURE, somefail);
+
+	for (ever) {
+		chr = (char)*(addr+i);
+		if (chr < '0' || '9' < chr)
+			break;
+		i++;
+	}
+
+	return i;
+}
+
 int funktio(char *addr) {
 	unsigned int i;
 	int width, height, scale, fit;
 
 	i = 0;
 
-	/* Spec 1 */
+	/* Spec step 1 */
 	if ((i = memval(addr, i, "P6", 2)) == -1)
 		errx(EXIT_FAILURE, headerfail);
 
-	/* Spec 2 */
+	/* Spec step 2 */
 	i = req_skip_ws(addr, i);
 
-	/* Spec 3 */
-	if (sscanf(addr+i, "%i", &width) != 1)
-		err(EXIT_FAILURE, "width");
+	/* Spec step 3 */
+	i = read_dec(addr, i, &width);
 
-	printf("debug :: i(0)     : %u\n", i);
-	printf("debug :: width(0) : %i\n", width);
+	printf("debug ** i     : %u\n", i);
+	printf("debug ** width : %i\n", width);
 
-	/* Spec 4 */
+	/* Spec step 4 */
 	i = req_skip_ws(addr, i);
 
-	/* Spec 5 */
-	if (sscanf(addr+i, "%i", &height) != 1)
-		err(EXIT_FAILURE, "height");
+	/* Spec step 5 */
+	i = read_dec(addr, i, &height);
 
-	/* Spec 6 */
+	/* Spec step 6 */
 	i = req_skip_ws(addr, i);
 
-	/* Spec 7 */
-	if (sscanf(addr+i, "%i", &scale) != 1)
-		err(EXIT_FAILURE, "scale");
+	/* Spec step 7 */
+	i = read_dec(addr, i, &scale);
 
 	if (scale <= 0)
 		errx(EXIT_FAILURE, "minval");
@@ -148,12 +164,18 @@ int funktio(char *addr) {
 	printf("debug :: width : %i\n", width);
 	printf("debug :: height: %i\n", height);
 	printf("debug :: scale : %i\n", scale);
+	printf("debug :: fit   : %i\n", fit);
 
-	/* width = readdec();
-	 * tmp = sscanf(addr+i, "%i", &width);
-	 * seuraavaksi lue: width (in ascii dec)
-	 * int sscanf(const char *str, const char *format, ...);
-	 */
+	/* Spec step 8 */
+	if (memchar(addr+i, "\n"))
+		i++;
+	else
+		errx(EXIT_FAILURE, "Newline required");
+
+	/* Spec step 9 */
+	/* FIXME */
+
+	printf("funktio(%i)\n", i);
 
 	return i;
 }
