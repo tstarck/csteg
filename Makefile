@@ -10,8 +10,10 @@ ensteg.o: ensteg.c
 
 clean:
 	@echo -n "$$ "
-	rm -fv *.o
+	git checkout pic.ppm
+	@echo -n "$$ "
+	rm -fv test *.o
 
 test: main
 	@echo
-	./test -f pic.ppm
+	echo -n foo | ./test -f pic.ppm
