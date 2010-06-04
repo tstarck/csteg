@@ -2,15 +2,19 @@
  * Steganography encoder
  * Copyright 2010 Tuomas Starck
  *
- * TODO:
- * - spec: ensteg && desteg
- * + spec: joka tavun mankeloi vähitenmerkitsevä bitti
- * - spec: laske muutetut bitit ja tulosta
- * + spec: kuvatiedostot komentoriviltä
- * + käytä PPM:ää (Wikipedia: Portable Pixmap)
- * + tarvittaessa imagemagick-wrapper voi PNG purkaa/pakata
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * PPM: http://netpbm.sourceforge.net/doc/ppm.html
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * FIXME TODO: spec: ensteg && desteg
  */
 
 #include <stdio.h>
@@ -24,7 +28,13 @@
 #include <sys/mman.h>
 #include <err.h>
 
-#define EVER       (;;)
+/* Syntactic sugar for the loops.
+ */
+#define EVER (;;)
+
+/* Flip the least significant bit
+ * on or off for any given byte.
+ */
 #define BIT_ON(x)  (x |= 0x01)
 #define BIT_OFF(x) (x &= 0xfe)
 
@@ -34,6 +44,13 @@ const char headerfail[] = "error: Invalid file header (PPM format required)";
 const char syntaxfail[] = "error: PPM syntax fail :-(";
 const char somefail[]   = "error: Could not read ascii decimal";
 
+/* no_comments(mmap pointer, mmap index):
+ *
+ * Skip comments (if there are any) by incrementing
+ * index to the byte following the comment.
+ *
+ * Returns the new index after comments.
+ */
 unsigned int no_comments(char *addr, unsigned int i) {
 	while (memcmp(addr+i, "#", 1) == 0) {
 		i++;
@@ -44,6 +61,15 @@ unsigned int no_comments(char *addr, unsigned int i) {
 	return i;
 }
 
+/* req_skip_ws(mmap pointer, mmap index):
+ *
+ * Require and skip all whitespace characters by incrementing
+ * index to the first byte following whitespace. If there is
+ * no whitespace characters to skip, program execution is
+ * terminated with an error.
+ *
+ * Returns the new index after whitespace.
+ */
 unsigned int req_skip_ws(char *addr, unsigned int i) {
 	int loop = true;
 	unsigned int start = i;
@@ -70,6 +96,15 @@ unsigned int req_skip_ws(char *addr, unsigned int i) {
 	return i;
 }
 
+/* read_dec(mmap pointer, mmap index, int pointer):
+ *
+ * Read ascii decimal number at index and store it to pointer.
+ * Also forward index at the first byte following read number.
+ *
+ * If no number can be read, terminate program with an error.
+ *
+ * Returns the new index after number.
+ */
 unsigned int read_dec(char *addr, unsigned int i, int *ptr) {
 	if (sscanf(addr+i, "%i", ptr) != 1)
 		errx(EXIT_FAILURE, somefail);
@@ -79,7 +114,15 @@ unsigned int read_dec(char *addr, unsigned int i, int *ptr) {
 	return i;
 }
 
-int write_msg(char *addr, int res, int fit) { /* FIXME: nimi */
+/* write_msg(mmap pointer, img resolution, ppm maxval):
+ *
+ * Write message to mmapped image. Message is read
+ * from standard input.
+ *
+ * Returns the number of bits written (including the
+ * eight null bits used to terminate message).
+ */
+int write_msg(char *addr, int res, int fit) {
 	int input;
 	int bit = 0x100;
 	unsigned int i = 0;
@@ -115,15 +158,23 @@ int write_msg(char *addr, int res, int fit) { /* FIXME: nimi */
 	return i;
 }
 
-void parse_ppm(char *addr) { /* FIXME: nimi */
+/* parse_ppm(mmap pointer):
+ *
+ * Parse given mmapped file assuming it is a PPM P6 formatted
+ * image. If expected headers cannot be read, program will
+ * terminate with an error.
+ *
+ * Conforming to: http://netpbm.sourceforge.net/doc/ppm.html
+ *
+ * Returns void.
+ */
+void parse_ppm(char *addr) {
 	unsigned int i;
 	int width, height, scale, fit, done;
 
 	i = 0;
 
-	/* http://netpbm.sourceforge.net/doc/ppm.html
-	 * Specification step 1
-	 */
+	/* Specification step 1 */
 	if (memcmp(addr+i, "P6", 2) != 0)
 		errx(EXIT_FAILURE, headerfail);
 	else
@@ -161,7 +212,7 @@ void parse_ppm(char *addr) { /* FIXME: nimi */
 	/* 9 */
 	done = write_msg(addr+i, width*height, fit);
 
-	printf("Pliplap viilattiin %i bittiä.\n", done);
+	printf("Pliplap viilattiin %i bittiä.\n", done); /* FIXME */
 
 	return;
 }
