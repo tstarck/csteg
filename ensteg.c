@@ -35,15 +35,13 @@ const char syntaxfail[] = "error: PPM syntax fail :-(";
 const char somefail[]   = "error: Could not read ascii decimal";
 
 unsigned int no_comments(char *addr, unsigned int i) {
-	unsigned int val = i;
-
 	if (memcmp(addr+i, "\n#", 2) == 0) {
 		i += 2;
 		while (addr[i] != '\n') i++;
-		val = no_comments(addr, i);
+		i = no_comments(addr, i);
 	}
 
-	return val;
+	return i;
 }
 
 unsigned int req_skip_ws(char *addr, unsigned int i) {
