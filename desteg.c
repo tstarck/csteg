@@ -1,5 +1,5 @@
-/* ensteg.c
- * Steganography encoder
+/* desteg.c
+ * Steganography decoder
  * Copyright 2010 Tuomas Starck
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -13,54 +13,13 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- * FIXME TODO: spec: ensteg && desteg
  */
 
 #include "common.h"
 
-/* write_msg(mmap pointer, img resolution, ppm maxval):
- *
- * Write message to mmapped image. Message is read
- * from standard input.
- *
- * Returns the number of bits written (including the
- * eight null bits used to terminate message).
+/* read_msg(mmap pointer):
  */
-int write_msg(char *addr, int res, int fit) {
-	int input;
-	int bit = 0x100;
-	unsigned int i = 0;
-
-	/* TODO:
-	 * pitäis tarkistaa kuvadatan riittävyys
-	 * eli että addr[i] pysyy jossain rajoissa
-	 */
-
-	/* debug */ printf("write_msg(): res = %i, pix = %i\n", res, 3*res*fit);
-
-	for EVER {
-		if (bit > 0x80) {
-			if ((input = getchar()) == EOF)
-				break;
-			bit = 1;
-		}
-
-		if (input & bit)
-			BIT_ON(addr[i]);
-		else
-			BIT_OFF(addr[i]);
-
-		bit <<= 1;
-		i++;
-	}
-
-	for (bit = 1; bit <= 0x80; bit <<= 1) {
-		BIT_OFF(addr[i]);
-		i++;
-	}
-
-	return i;
+int read_msg(char *addr) {
 }
 
 int main(int argc, char* argv[]) {
