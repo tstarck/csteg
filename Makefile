@@ -2,17 +2,14 @@
 
 CC=gcc -ansi -pedantic -Wall -DDEBUG
 
-main: ensteg.o common.o
+main: ensteg.o
 	$(CC) -o test ensteg.o
 
-ensteg.o: ensteg.c
+ensteg.o: ensteg.c common.h
 	$(CC) -c ensteg.c
 
-desteg.o: desteg.c
+desteg.o: desteg.c common.h
 	$(CC) -c desteg.c
-
-common.o: common.h
-	$(CC) -c common.h
 
 clean:
 	@echo -n "$$ "
