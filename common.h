@@ -27,9 +27,6 @@
 #include <sys/mman.h>
 #include <err.h>
 
-#define BIT_ON(x)   (x |= 0x01)
-#define BIT_OFF(x)  (x &= 0xfe)
-
 #define USAGE       "USAGE: ./test -f <file>"
 #define EZEROSIZE   "error: Cannot mmap(2) empty file"
 #define EWHITESPACE "error: No whitespace where expected"

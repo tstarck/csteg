@@ -17,18 +17,41 @@
 
 #include "common.h"
 
+const char *report = "Flipped %u bits in %u bytes.\n";
+
+/* flip_on(mmap pointer)
+ * flip_off(mmap pointer):
+ *
+ * Turn the least significant bit on or off in a given byte.
+ *
+ * Return the number of bits flipped (which is 1 at most).
+ */
+int flip_on(char *addr) {
+	if ((addr[0] & 1) == 0) {
+		addr[0] |= 0x01;
+		return 1;
+	}
+	return 0;
+}
+int flip_off(char *addr) {
+	if ((addr[0] & 1) == 1) {
+		addr[0] &= 0xfe;
+		return 1;
+	}
+	return 0;
+}
+
 /* write_msg(mmap pointer, img length):
  *
- * Write message to mmapped image. Message is read
- * from standard input.
+ * Write message to mmapped image. Message is read from
+ * standard input.
  *
- * Returns the number of bits written (including the
- * eight null bits used to terminate message).
+ * Returns void.
  */
-unsigned int write_msg(char *addr, unsigned int pix) {
+void write_msg(char *addr, unsigned int pix) {
 	int in;
 	int bit = 0x81;
-	unsigned int i = 0;
+	unsigned int i = 0, alt = 0;
 
 	while (true) {
 		if (bit > 0x80) {
@@ -41,8 +64,10 @@ unsigned int write_msg(char *addr, unsigned int pix) {
 			if ((in = getchar()) == EOF) break;
 		}
 
-		if (in & bit) BIT_ON(addr[i]);
-		else          BIT_OFF(addr[i]);
+		if (in & bit)
+			alt += flip_on(addr+i);
+		else
+			alt += flip_off(addr+i);
 
 		bit <<= 1;
 		i++;
@@ -50,11 +75,13 @@ unsigned int write_msg(char *addr, unsigned int pix) {
 
 	/* Finalize writing with null byte */
 	for (bit = 1; bit <= 0x80; bit <<= 1) {
-		BIT_OFF(addr[i]);
+		alt += flip_off(addr+i);
 		i++;
 	}
 
-	return i;
+	printf(report, alt, i);
+
+	return;
 }
 
 int main(int argc, char* argv[]) {
@@ -62,7 +89,7 @@ int main(int argc, char* argv[]) {
 	char *addr;
 	struct stat sb;
 	size_t flen;
-	unsigned int i, alt, pix;
+	unsigned int i, pix;
 
 	if (getopt(argc, argv, "f:") != 'f')
 		errx(EXIT_FAILURE, USAGE);
@@ -88,9 +115,7 @@ int main(int argc, char* argv[]) {
 
 	i = parse_ppm(addr, &pix);
 
-	alt = write_msg(addr+i, pix);
-
-	printf("Muunneltiin %u bittiä.\n", alt);
+	write_msg(addr+i, pix);
 
 	if (munmap(addr, flen) == -1)
 		err(EXIT_FAILURE, "%s", "munmap(2)");

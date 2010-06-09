@@ -30,8 +30,8 @@ void read_msg(char *addr, unsigned int pix) {
 	int bit = 1;
 
 	while (true) {
-		/* Do not try to read beyond image */
-		/* Who knows where it might lead   */
+		/* Don't try to read beyond image */
+		/* Who knows where it might lead  */
 		if (i > pix)
 			break;
 
