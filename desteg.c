@@ -17,9 +17,39 @@
 
 #include "common.h"
 
-/* read_msg(mmap pointer):
+/* read_msg(mmap pointer, img length):
+ *
+ * Read message from mmapped image. Message
+ * is then printed to standard output.
+ *
+ * Returns void.
  */
-int read_msg(char *addr) {
+void read_msg(char *addr, unsigned int pix) {
+	unsigned int i = 0;
+	char chr = '\0';
+	int bit = 1;
+
+	while (true) {
+		/* Do not try to read beyond image */
+		/* Who knows where it might lead   */
+		if (i > pix)
+			break;
+
+		if (addr[i] & 1)
+			chr |= bit;
+
+		i++;
+		bit <<= 1;
+
+		if (bit > 0x80) {
+			if (chr == '\0') break;
+			putchar(chr);
+			chr = '\0';
+			bit = 1;
+		}
+	}
+
+	return;
 }
 
 int main(int argc, char* argv[]) {
@@ -27,36 +57,39 @@ int main(int argc, char* argv[]) {
 	char *addr;
 	struct stat sb;
 	size_t flen;
+	unsigned int i, pix;
 
 	if (getopt(argc, argv, "f:") != 'f')
-		errx(EXIT_FAILURE, usage);
+		errx(EXIT_FAILURE, USAGE);
 
 	if (argv[2] == '\0')
-		errx(EXIT_FAILURE, usage);
+		errx(EXIT_FAILURE, USAGE);
 
 	if ((fd = open(argv[2], O_RDWR)) == -1)
 		err(EXIT_FAILURE, "%s", argv[2]);
 
 	if (fstat(fd, &sb) == -1)
-		err(EXIT_FAILURE, "fstat()");
+		err(EXIT_FAILURE, "%s", "fstat(2)");
 
 	if ((flen = sb.st_size) == 0)
-		errx(EXIT_FAILURE, zerosize);
+		errx(EXIT_FAILURE, EZEROSIZE);
 
 	addr = mmap(NULL, flen, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
 	if (addr == MAP_FAILED) {
 		close(fd);
-		err(EXIT_FAILURE, "%s", "mmap()");
+		err(EXIT_FAILURE, "%s", "mmap(2)");
 	}
 
-	parse_ppm(addr);
+	i = parse_ppm(addr, &pix);
+
+	read_msg(addr+i, pix);
 
 	if (munmap(addr, flen) == -1)
-		err(EXIT_FAILURE, "munmap()");
+		err(EXIT_FAILURE, "%s", "munmap(2)");
 
 	if (close(fd) == -1)
-		err(EXIT_FAILURE, "close()");
+		err(EXIT_FAILURE, "%s", "close(2)");
 
 	return EXIT_SUCCESS;
 }

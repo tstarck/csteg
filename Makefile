@@ -1,22 +1,22 @@
 # Makefile
 
-CC=gcc -ansi -pedantic -Wall -DDEBUG
+CFLAGS=-ansi -pedantic -Wall -DDEBUG
 
-main: ensteg.o
-	$(CC) -o test ensteg.o
+all: main
 
-ensteg.o: ensteg.c common.h
-	$(CC) -c ensteg.c
+main: desteg.o ensteg.o common.o
+	$(CC) $(CFLAGS) -o desteg desteg.o common.o
+	$(CC) $(CFLAGS) -o ensteg ensteg.o common.o
 
-desteg.o: desteg.c common.h
-	$(CC) -c desteg.c
+common.o: common.c
+	$(CC) $(CFLAGS) -c $^
+
+desteg.o: desteg.c
+	$(CC) $(CFLAGS) -c $^
+
+ensteg.o: ensteg.c
+	$(CC) $(CFLAGS) -c $^
 
 clean:
 	@echo -n "$$ "
-	git checkout pic.ppm
-	@echo -n "$$ "
-	rm -fv test *.o
-
-test: main
-	@echo
-	echo -n "<<" | ./test -f pic.ppm
+	rm -fv *.o desteg ensteg
