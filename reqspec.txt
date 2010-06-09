@@ -1,0 +1,40 @@
+
+      +------------------------+
+      |   ensteg  &&  desteg   |
+      +------------------------+
+
+
+      [ Vaatimukset ja määrittely ]
+
+
+Sivulta: http://www.cs.helsinki.fi/u/kuuppelo/C/S2009/projekti.html
+
+Aihe 4. Salaiset viestit:
+
+   Tee ohjelma, jolla voidaan koodata salaisia viestejä kuviin (bitmap). Tee
+   toinen ohjelma, jolla viestit voidaan purkaa kuvista. Koodatessa muuta
+   tarvittaessa jokaisen tavun vähitenmerkitsevä bitti tallettaaksesi tietoa
+   viestistä. Purkaessa muodosta salainen viesti tavujen vähitenmerkitsevistä
+   biteistä. Laske kuinka monta bittiä todella muutit kuvatiedostossa ja
+   tulosta käyttäjälle tämä tieto.
+
+   Anna komentoriviparametrina ainakin kuvatiedostot.
+
+
+Lisäyksiä ja tarkennuksia:
+
+ * Salaisten viestien tallentamiseen ja lukemiseen käytetään vain ja
+   ainoastaan PPM-muotoisia kuvatiedostoja niin kuin on määritelty
+   netpbm-projektin sivuilla:
+
+   http://netpbm.sourceforge.net/doc/ppm.html
+
+ * Salainen viesti tallennetaan C-tyylisesti eli nollatavuun loppuvana
+   merkkijonona. Tämän takia viesti ei voi itsessään sisältää nollatavua.
+
+ * Kuvaan tallennettava salainen viesti luetaan vakiosyötteestä (stdin) ja
+   kuvasta löytynyt viesti tulostetaan vakiotulosteeseen (stdout).
+
+ * Jos käyttäjä antaa pidemmän viestin kuin kuvaan voi tallentaa,
+   tallennetaan viestistä vain sen verran, kun kuvaan mahtuu. Viestin
+   katkaisusta ei varoiteta erikseen.

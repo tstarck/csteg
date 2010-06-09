@@ -1,62 +1,54 @@
 
-ensteg && desteg
-================
-
-[ Määrittely ]
-
-Sivulta: http://www.cs.helsinki.fi/u/kuuppelo/C/S2009/projekti.html
-
-Aihe 4. Salaiset viestit:
-
-   Tee ohjelma, jolla voidaan koodata salaisia viestejä kuviin (bitmap). Tee
-   toinen ohjelma, jolla viestit voidaan purkaa kuvista. Koodatessa muuta
-   tarvittaessa jokaisen tavun vähitenmerkitsevä bitti tallettaaksesi tietoa
-   viestistä. Purkaessa muodosta salainen viesti tavujen vähitenmerkitsevistä
-   biteistä. Laske kuinka monta bittiä todella muutit kuvatiedostossa ja
-   tulosta käyttäjälle tämä tieto.
-
-   Anna komentoriviparametrina ainakin kuvatiedostot.
-
-Tarkennuksia:
-
- * Ohjelmat olettavat salaisia viestejä kantavien kuvien olevan PPM-muodossa
-   niin kuin on määritelty netpbm-projektin sivuilla:
-
-   http://netpbm.sourceforge.net/doc/ppm.html
-
- * Salainen viesti tallennetaan C-tyylisesti eli nollatavuun loppuvana merkkijonona. Tämän takia viesti ei voi itsessään sisältää nollatavua.
+      +------------------------+
+      |   ensteg  &&  desteg   |
+      +------------------------+
 
 
-[ Kääntäminen ]
+      [ Kääntäminen ]
 
-   Ohjelmien kääntäminen pitäisi olla suoraviivaista ja helppoa missä tahansa
-   POSIX-yhteensopivassa järjestelmässä, jossa on saatavilla ANSI C -kääntäjä.
 
-   Jos käytössä on make(1):
+Ohjelmien kääntäminen pitäisi olla suoraviivaista ja helppoa missä tahansa
+POSIX-yhteensopivassa järjestelmässä, jossa on saatavilla ANSI C -kääntäjä.
+
+Jos käytössä on make(1):
 
    $ make
 
-   tuottaa ohjelma FIXME
+tuottaa ohjelmat ensteg ja desteg, joista ensimmäinen tallentaa salaisia
+viestejä kuviin ja jäljempi purkaa viestit kuvista.
 
 
-[ Käyttö ]
-
-   !!! FIXME !!!
-
-   Jos viestillinen kuvatiedosto halutaan pakata, pitää käyttää häviötöntä
-   pakkausta, muutoin sisällytetty viesti tuhoutuu. Pakkaukseen ja
-   purkamiseen voidaan käyttää esimerkiksi ImageMagick(1) -ohjelmakokoelmaa.
-
-   Pakkaa PPM-kuvan häviöttömästi:
-
-   $ convert kuva.ppm kuva.png
-
-   Purkaa kuvan PPM-kuvaksi, jotta salainen viesti voidaan jälleen lukea:
-
-   $ convert kuva.png kuva.ppm
+      [ Käyttö ]
 
 
-[ Yhteensopivuus ]
+Molemmat ohjelmat vaativat komentoriviargumenttina vivun -f, jota seuraa
+käsiteltävä PPM-kuva. Salaisin viesti luetaan ja kirjoitetaan
+vakiosyötteeseen ja vakiotulosteeseen vastaavasti.
 
- * Ohjelma on todettu toimivan ImageMagick(1) -työkalujen ja Gimp-
-   kuvankäsittelyohjelman tuottamien PPM-kuvien kanssa.
+Esimerkiksi
+
+  $ echo salainen viesti | ensteg -f kuva.ppm
+
+"salainen viesti" kirjoitetaan tiedostoon kuva.ppm. Vastaavasti:
+
+  $ desteg -f kuva.ppm > viesti.txt
+
+lukee tiedostosta kuva.ppm viestin, ja käyttöjärjestelmä ohjaa tulosteen
+tiedostoon viesti.txt.
+
+Jos salaisen viestin sisaltävä kuva tahdotaan pakata, tulee käyttää häviötöntä pakkausta tai viesti tuhoutuu. PPM-kuvat voidaan muuntaa PNG-muotoon ja päin vastoin ilman häviötä.
+
+
+      [ Yhteensopivuus ]
+
+
+Ohjelma on todettu toimivan ImageMagick(1) -työkalujen ja Gimp-
+kuvankäsittelyohjelman tuottamien PPM-kuvien kanssa.
+
+ImageMagickin avulla salaisen viestin sisältävän kuvan voi pakata:
+
+  $ convert kuva.ppm kuva.png
+
+Ja vastaavasti pakatun PNG-kuvan voi purkaa:
+
+  $ convert kuva.png kuva.ppm
